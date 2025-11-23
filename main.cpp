@@ -102,7 +102,7 @@ class Order {
 
 // So here, we have a vector of POINTERS to orders.
 using OrderPointer = std::shared_ptr<Order>;
-using OrderPointers = std::list<OrderPointer>;
+using OrderPointers = std::list<OrderPointer>; // we use a LIST because if we have orders at the same price, we want a FIFO order.
 
 // Common functionality we need to support for orders:
 
@@ -296,19 +296,24 @@ class Orderbook{
                     return { };
                 }
                 
-                // NEED TO UNDERSTAND THIS BETTER.
+                // iteator to OrderPointers, which is simply a LIST. allows access for O(1) remove/cancellation.
+                // bids_ is our buy-side storage, whereas asks_ is our sell-side storage.
                 OrderPointers::iterator iterator;
 
                 if (order->GetSide() == Side::Buy){
-                    auto& orders = bids_[order->GetPrice()];
+                    auto& orders = bids_[order->GetPrice()]; 
+                    // this line causes INSERTION, where the price of the order is used as the key, and simultaneously gives an "orders" alias which is the list of orders at the specific price level.
+                    // so we insert an order (with Price as the key) and retrieve the reference to the list (value).
                     orders.push_back(order);
                     iterator = std::next(orders.begin(), orders.size()-1);
+                    // the order is added to the back of the list (FIFO), and the iterator wil calculate the exact position of the order we just inserted. (for O(1) removal later if needed).
                 }else{
                     auto& orders = asks_[order->GetPrice()];
                     orders.push_back(order);
                     iterator = std::next(orders.begin(), orders.size()-1);
                 }
 
+                // general bookkeeping in the orders_ OrderBook.
                 orders_.insert({order->GetOrderId(), OrderEntry{ order, iterator}});
                 return MatchOrders();
             }
