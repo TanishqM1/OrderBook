@@ -1,5 +1,7 @@
 # Orderbook Mock Trading Engine (In Progress)
 
+C++ (engine), Go (backend APIs), Next.js (frontend) serving as a mock stock exchange.
+
 #### This project is a mock electronic trading engine that simulates the core components of a real exchange orderbook. It includes:
 
 - Limit order creation and management
@@ -42,4 +44,4 @@ The schema is derived from CodingJesus's [Orderbook Video](https://www.youtube.c
 - revisit code & improve performance
 - add backend/frontend with APIs to enter deals into the OrderBook.
 
-- Make entire program easily runnable.
+- Make entire program easily runnable, serving as a mock stock exchange.
