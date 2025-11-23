@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <memory>
 #include <iterator>
+#include <numeric>
 
 // "Order"s will have two Time Enforcement options.
 enum class OrderType{
@@ -317,13 +318,17 @@ class Orderbook{
                 orders_.insert({order->GetOrderId(), OrderEntry{ order, iterator}});
                 return MatchOrders();
             }
-
+            
+            // method to REMOVE an order from the orderbook if it is cancelled.
             void CancelOrder(OrderId orderId){
             if (!orders_.contains(orderId)){
                 return;
             }
+            // we need aliases to the order and iterator (retrieved from orders_ using the orderId). Then we can remove it from the orders_.
             const auto& [order, orderIterator] = orders_.at(orderId);
             orders_.erase(orderId);
+
+            // if it's a sell order, we remove it from the asks_ data structure. if it's empty after, we need to remove the price altogether from it (memory cleanup).
 
             if (order->GetSide() == Side::Sell){
                 auto price = order->GetPrice();
@@ -341,15 +346,48 @@ class Orderbook{
                 }
             }}
 
+            
             Trades MatchOrder(OrderModify order){
                 if (!orders_.contains(order.GetOrderId())){
                     return { };
                 }
 
+                // fetch information of an order, cancel the order, and add the modified version back.
                 const auto& [existingOrder, _] = orders_.at(order.GetOrderId());
                 CancelOrder(order.GetOrderId());
                 return AddOrder(order.ToOrderPointer(existingOrder->GetOrderType()));
             }
+
+            std::size_t Size() const { return orders_.size();}
+
+            OrderBookLevelInfo GetOrderInfos() const{
+                // alias for a LevelInfo vector, and we allocate memory in each LevelInfos (orders_ is conservative, we can use asks_ and bids_ if we really wanted to).
+                LevelInfos bidinfos, askinfos;
+                bidinfos.reserve(orders_.size());
+                askinfos.reserve(orders_.size());
+
+                // this is a lambda function that takes a Price and list of OrderPointers at that price, and returns a LevelInfo struct containing all of them (struct has Price and TotalQuantity).
+                // accumulate iterates from orders.start to orders.end, starts with a value of 0, and adds the sum of OrderPointer() in an order.'
+
+                // so within OrderPointers -> OrderPointer -> OrderPointer Quantity is what we want the sum of. Tells us how many shares are "up for consideration".
+                auto CreateLevelInfos = [](Price price, const OrderPointers& orders){
+                    return LevelInfo{ price, std::accumulate(orders.begin(), orders.end(), (Quantity)0, [](std::size_t runningSum, const OrderPointer& order){
+                        return runningSum + order->GetRemainingQuantity();
+                    })};
+                };
+
+                // finally, for each pricelevel in bids_, we take the pricelevel & OrderPointers (which point to all the live orders)
+                // we calcualte the total sum/quantity of shares in all orders at the price level COMBINED.
+                // push that number back to bidinfos and askinfos.
+                for (const auto& [price, orders] : bids_)
+                    bidinfos.push_back(CreateLevelInfos(price, orders));
+                
+                for (const auto& [price, orders] : asks_)
+                    askinfos.push_back(CreateLevelInfos(price, orders));
+                // in the end, bidinfos and askinfos is a vector of the "LevelInfo" object, which stores price-totalquantity pair(s). 
+                // helps us find the liquidity of shares at certain prices, using asks/bids.
+            }
+
 };
 
 int main(){
