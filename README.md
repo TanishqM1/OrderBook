@@ -32,3 +32,14 @@ trying to finish in ~ 2-3 weeks, with a full trading engine + minimal turn-based
 11/23 - OrderBook() implementation and explanation is finished. 
 
 The schema is derived from CodingJesus's [Orderbook Video](https://www.youtube.com/watch?v=XeLWe0Cx_Lg&t=1258s)
+
+
+# Roadmap
+
+- implement tests for trading book using live input (thorough tests, must all pass)
+- imeplement small GUI (can be cnosole based? to test with trading book)
+- simulate a days of trades (stress test) for performance checks
+- revisit code & improve performance
+- add backend/frontend with APIs to enter deals into the OrderBook.
+
+- Make entire program easily runnable.
