@@ -12,10 +12,10 @@ type Error struct {
 
 // orders need type, side, price, quantity
 type Fields struct {
-	Type     string `json:"type"`
-	Side     string `json::"side"`
-	Price    string `json::"price"`
-	Quantity string `json::"quantity"`
+	Type     string `json:"type"`      // GTILLCANCEL or FILLANDKILL
+	Side     string `json::"side"`     // BUY or SELL
+	Price    int    `json::"price"`    // INT
+	Quantity int    `json::"quantity"` // INT
 }
 
 func writeError(w http.ResponseWriter, message string, code int) {

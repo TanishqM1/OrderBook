@@ -48,3 +48,11 @@ The schema is derived from CodingJesus's [Orderbook Video](https://www.youtube.c
 
 
 11/23 - OrderBook() is finished, Go backend is initialized. Need to implement JSON parsing, error handling, and FFI bridge to C++ on the backned. 
+
+Upcoming architecture:
+
+Our Go backend will listen for incoming api requests containing information for buy/sell orders. It will use C++ methods via a FFI bridge to invoke the methods using parsed JSON.
+
+While the C++ code runs, and our engine is "on", it is essentially thread-blocked, meaning it is mimicking sleeping until it is invoked (a new order is pushed to a queue) in which it pops from the queue, adds it to the orderbook,
+computes as needed, and goes back to sleep.
+

@@ -34,8 +34,8 @@ func Handler(r *chi.Mux) {
 	// Need to implement the PostContent function still!
 
 	r.Route("/post", func(router chi.Router) {
-		// implementation for this endpoint
-		router.Post("/Trade", Trade) // need to add function
+		// implementation for this endpoint will be done in FFI.go which parses the JSON, and implements the FFI bridge to send the information to our C++ engine.
+		router.Post("/Trade", Trade)
 	})
 
 }
