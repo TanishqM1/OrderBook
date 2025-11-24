@@ -38,32 +38,38 @@ The schema is derived from CodingJesus's [Orderbook Video](https://www.youtube.c
 
 # Roadmap
 
-- implement tests for trading book using live input (thorough tests, must all pass)
-- imeplement small GUI (can be cnosole based? to test with trading book)
-- simulate a days of trades (stress test) for performance checks
-- revisit code & improve performance
-- add backend/frontend with APIs to enter deals into the OrderBook. (Go, Next.js, FFI bridge)
+## 1.  C++ Engine Layer (The Core Logic) //**DONE**//
 
-- Make entire program easily runnable, serving as a mock stock exchange with updates on the frontend.
+This layer is the heart of the system and contains the business-critical algorithms.
 
+- Primary Service: Low-latency Order Matching and State Management.
 
-11/23 - OrderBook() is finished, Go backend is initialized. Need to implement JSON parsing, error handling, and FFI bridge to C++ on the backned. 
+- Function: Holds the active Orderbook state (all resting bids and asks in RAM) and executes the Price-Time Priority matching algorithm (AddOrder, MatchOrders).
 
-# Upcoming architecture:
+- Output: Returns trade executions and market liquidity snapshots (GetOrderInfos).
 
-Our Go backend will listen for incoming api requests containing information for buy/sell orders. It will use C++ methods via a FFI bridge to invoke the methods using parsed JSON.
+## 2. C++ Server Layer (The Performance Gateway)
 
-While the C++ code runs, and our engine is "on", it is essentially thread-blocked, meaning it is mimicking sleeping until it is invoked (a new order is pushed to a queue) in which it pops from the queue, adds it to the orderbook,
-computes as needed, and goes back to sleep.
+This layer wraps the Engine and exposes its functionality over a fast network protocol, acting as the service boundary.
 
-- implement FFI bridge
+- Primary Service: Network Communication and gRPC Endpoint.
 
-- send data in go over FFI bridge
+- Function: Implements the gRPC service interfaces (defined in a .proto file) like PlaceOrder, CancelOrder, and GetMarketDepth. It translates incoming gRPC messages into native C++ object calls (Orderbook::AddOrder()) and serializes the C++ results back into gRPC responses.
 
-- have some sort of listener in my CPP code (refactor it!) that waits for information to come in, and then act on it
+- Why C++: Choosing C++ for the gRPC server maximizes speed by keeping the network protocol handling and the core matching logic within the same optimized, minimal-latency runtime.
 
-- return information over the FFI bridge of ALL levels in our orderbook(s).
+## 3. Go Backend API (The External Interface) //**DONE**//
 
-- make the frontend that sends json, and accepts the return json to show visuals.
+- Primary Service: Client Authentication and Routing/Traffic Management.
 
-when this is done, the project will be complete.
+- Function: Handles user authentication (if required), provides external RESTful endpoints (HTTP/JSON) for the Frontend, and serves as the gRPC client. It translates incoming REST API calls into the required gRPC service calls to the C++ Server.
+
+- Why Go: Go is used for its excellent concurrency model (goroutines) to handle high volumes of simultaneous network connections from external clients efficiently and for its robust library support for HTTP and gRPC client logic.
+
+## 4. Frontend UI (Visualization and Input)
+
+- Primary Service: Visualization and User Interaction.
+
+- Function: Handles user input for placing orders, sends JSON requests to the Go Backend API, and receives streaming/polled market data. It renders the order book depth, trade history, and overall system state visually for the end-user.
+
+- Technology: Next.js is chosen for its modern capabilities in building fast, complex, and data-driven user interfaces.
