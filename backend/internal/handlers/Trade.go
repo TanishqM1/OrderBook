@@ -37,8 +37,8 @@ func Trade(w http.ResponseWriter, r *http.Request) {
 
 	// FLOW:
 
-	// Start Engine
-	// Invoke CreateOrderBook() and allocate all orderbook memory addresses
-	// use name_ to resolve address of books
-	// using the rest of the information and the book address, invoke AddOrder().
+	// Format request for gRPC & Protobuf
+	// Reroute request to local C++ server on /9090
+	// C++ server parses information
+	// C++ server performs operation on the running engine, and returns the latest information.
 }
