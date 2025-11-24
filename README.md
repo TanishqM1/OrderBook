@@ -42,6 +42,7 @@ The schema is derived from CodingJesus's [Orderbook Video](https://www.youtube.c
 - imeplement small GUI (can be cnosole based? to test with trading book)
 - simulate a days of trades (stress test) for performance checks
 - revisit code & improve performance
-- add backend/frontend with APIs to enter deals into the OrderBook.
+- add backend/frontend with APIs to enter deals into the OrderBook. (Go, Next.js, FFI bridge)
 
-- Make entire program easily runnable, serving as a mock stock exchange.
+- Make entire program easily runnable, serving as a mock stock exchange with updates on the frontend.
+
