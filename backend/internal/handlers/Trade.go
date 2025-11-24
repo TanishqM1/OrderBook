@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -25,12 +26,12 @@ func Trade(w http.ResponseWriter, r *http.Request) {
 		api.HandleRequestError(w, err)
 		return
 	}
+	fmt.Println(params)
 	// params to send over.
 	// type_ := params.TradeType
 	// side_ := params.Side
 	// price_ := params.Price
 	// quantity_ := params.Quantity
-
 	// name_ := params.Name
 
 	// now params has all the values from our JSON. We need to send this over to our C++ engine via FFI.
