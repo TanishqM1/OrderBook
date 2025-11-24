@@ -1,4 +1,4 @@
-#include "orderbook.cpp"
+#include "orderbook.h"
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -21,12 +21,14 @@ extern "C"{
         // Convert C variables to C++ types
         OrderType type = static_cast<OrderType>(orderType);
         Side s = static_cast<Side>(side);
-
-        // create a new OrderPointer in CPP
-        OrderPointer new_order = make_shared<Order>(type, side, price, quantity, orderId);
-
-        // Call target function
-        book->AddOrder(new_order);
+        try{
+            // create a new OrderPointer in CPP
+            OrderPointer new_order = make_shared<Order>(type, s, price, quantity, orderId);
+            // Call target function
+            book->AddOrder(new_order);
+        }catch(const std::exception& error){
+            std::cerr << "\nAddOrder failed" << error.what();
+        }
     }
 
     OrderBookAddress CreateBook(const char* name){
