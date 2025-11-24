@@ -5,7 +5,7 @@
 #include "addOrder_ffi.h"
 // MUST CREATE orderbook.h TOO USE!
 
-extern "C"{
+
     void AddOrderToEngine(
         OrderBookAddress book_ptr,
         int orderType,
@@ -43,4 +43,3 @@ extern "C"{
     void DestroyBook(OrderBookAddress book_ptr){
         delete static_cast<Orderbook*>(book_ptr);
     }
-}

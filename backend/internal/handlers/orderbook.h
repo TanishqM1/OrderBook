@@ -206,9 +206,6 @@ private:
             return price <= bestBid;
         }
     }
-
-    // Forward declaration of CancelOrder, required for MatchOrders()
-    void CancelOrder(OrderId orderId); 
     
     Trades MatchOrders() {
         Trades trades;

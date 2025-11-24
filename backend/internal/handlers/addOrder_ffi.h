@@ -1,7 +1,11 @@
+// --- addOrder_ffi.h ---
 #pragma once
 #include <stdint.h>
-#include <iostream>
-#include <string>
+
+// Linkage protection for C++ compilers
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef void* OrderBookAddress;
 
@@ -16,3 +20,8 @@ void AddOrderToEngine(
 
 OrderBookAddress CreateBook(const char* name);
 void DestroyBook(OrderBookAddress book_ptr);
+
+// End of linkage protection
+#ifdef __cplusplus
+}
+#endif
