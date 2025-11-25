@@ -500,52 +500,18 @@ void server_trade(const httplib::Request& req, httplib::Response& res){
 // and conversion functions like parse_id are globally defined.
 
 void server_cancel(const httplib::Request& req, httplib::Response& res) {
-    try {
-        // 1. Read parameters
+    try{
+        // parse content
         string s_orderid = req.get_param_value("orderid");
-        string s_book = req.get_param_value("book");
+        string s_type = req.get_param_value("book");
 
-        std::cout << "\n[C++] CANCEL RECEIVED:"
-                  << "\n  orderid: " << s_orderid
-                  << "\n  book: " << s_book
-                  << std::endl;
-
-        // 2. Minimal Validation (checks for missing parameters)
-        if (s_orderid.empty() || s_book.empty()) {
-            res.status = 400; // Bad Request
-            res.set_content(R"({"error":"Missing required parameters: orderid or book"})", "application/json");
-            return;
-        }
-
-        // 3. Convert input and get initial size
-        OrderId order_id = parse_id(s_orderid);
-        Orderbook& book = MyMap[s_book]; 
-        size_t initial_size = book.Size();
-
-        // 4. Process cancellation
-        book.CancelOrder(order_id);
-        size_t final_size = book.Size();
-
-        // 5. Check if the order was successfully removed (size must decrease)
-        if (final_size < initial_size) {
-            // SUCCESS: Order was found and removed.
-            res.status = 200; // OK
-            res.set_content(std::format(R"({{"message":"Order {} cancelled successfully"}})", order_id), "application/json");
-        } else {
-            // FAILURE: Order ID was not found or already cancelled.
-            res.status = 404; // Not Found
-            res.set_content(std::format(R"({{"error":"Order ID {} not found in book"}})", order_id), "application/json");
-        }
-
-    } catch (const std::exception& e) {
-        // Handles standard errors (like bad number conversion or logic_error).
-        res.status = 500; 
-        std::cerr << "Exception in server_cancel: " << e.what() << std::endl;
-        res.set_content(std::format(R"({{"error":"Engine processing error: {}"}})", e.what()), "application/json");
-    } catch (...) {
-        // Catch-all for unexpected errors
+        cout << "\n " << s_orderid << " " << s_type;
+        res.status = 200;
+        res.set_content("{\"message\": \"Order Info Received\"}", "application/json");
+    }catch(...){
         res.status = 500;
         res.set_content(R"({"error":"Unknown internal server error."})", "application/json");
+        cout << "\n There was an error";
     }
 }
 

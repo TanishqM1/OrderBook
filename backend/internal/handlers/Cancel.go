@@ -22,7 +22,7 @@ func Cancel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(params)
+	fmt.Printf("\nMyParams: %v", params)
 
 	if params.OrderId == 0 {
 		api.HandleRequestError(w, fmt.Errorf("orderId field is required, and cannot be zero"))
@@ -34,7 +34,7 @@ func Cancel(w http.ResponseWriter, r *http.Request) {
 
 	client := http.Client{}
 
-	cppServerURL := fmt.Sprintf("http://localhost:6060/cancel%s", URL_Values.Encode())
+	cppServerURL := fmt.Sprintf("http://localhost:6060/cancel?%s", URL_Values.Encode())
 
 	log.Debugf("Forwarding cancel request to C++ engine: %s", cppServerURL)
 

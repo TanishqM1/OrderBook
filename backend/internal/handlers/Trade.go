@@ -72,5 +72,5 @@ func Trade(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Failed to proxy response body: %v", err)
 	}
 
-	fmt.Printf("Processed new order with ID: %d\n", orderId)
+	fmt.Printf("\nProcessed new order with ID: %d", orderId)
 }
