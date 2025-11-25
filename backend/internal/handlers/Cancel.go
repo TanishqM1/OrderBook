@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/TanishqM1/Orderbook/api"
 	log "github.com/sirupsen/logrus"
@@ -32,20 +33,24 @@ func Cancel(w http.ResponseWriter, r *http.Request) {
 	URL_Values.Set("orderid", strconv.FormatUint(uint64(params.OrderId), 10))
 	URL_Values.Set("book", params.Book)
 
+	reqBody := strings.NewReader(URL_Values.Encode())
+
 	client := http.Client{}
 
-	cppServerURL := fmt.Sprintf("http://localhost:6060/cancel?%s", URL_Values.Encode())
+	cppServerURL := "http://localhost:6060/cancel"
 
-	log.Debugf("Forwarding cancel request to C++ engine: %s", cppServerURL)
+	log.Debugf("Forwarding cancel request to C++ engine: %s with body: %s", cppServerURL, URL_Values.Encode())
 
-	cppReq, err := http.NewRequest("POST", cppServerURL, nil)
+	cppReq, err := http.NewRequest("POST", cppServerURL, reqBody)
 	if err != nil {
 		log.Errorf("Failed to create C++ request: %v", err)
 		api.HandleInternalError(w)
 		return
 	}
 
+	cppReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	cppResp, err := client.Do(cppReq)
+
 	if err != nil {
 		log.Errorf("Failed to connect to C++ engine at :6060. Is the C++ server running? Error: %v", err)
 		api.HandleInternalError(w)

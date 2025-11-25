@@ -523,6 +523,7 @@ void server_cancel(const httplib::Request& req, httplib::Response& res) {
         res.set_content("{\"message\": \"Order Info Received\"}", "application/json");
         cout << "\n Cancelled OrderID: " << s_orderid << " in book: " << s_book << " new size:  " << book.Size();
         }else {
+            res.status = 404;
             res.set_content("{\"message\": \"Order ID not found\"}", "application/json");
         }
     }catch(...){
