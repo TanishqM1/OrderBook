@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"sync/atomic"
 )
 
 type Error struct {
@@ -10,13 +11,23 @@ type Error struct {
 	Message string
 }
 
+var OrderIdCounter uint64 = 0
+
+func GetNextOrderId() uint64 {
+	return atomic.AddUint64(&OrderIdCounter, 1)
+}
+
 // orders need type, side, price, quantity
-type Fields struct {
-	TradeType string `json:"tradetype"` // GTILLCANCEL or FILLANDKILL
-	Side      string `json::"side"`     // BUY or SELL
-	Price     int    `json::"price"`    // INT
-	Quantity  int    `json::"quantity"` // INT
-	Name      string `json::"name"`     // NAME
+type AddFields struct {
+	TradeType string `json::"tradetype"` // GTILLCANCEL or FILLANDKILL
+	Side      string `json::"side"`      // BUY or SELL
+	Price     int    `json::"price"`     // INT
+	Quantity  int    `json::"quantity"`  // INT
+	Name      string `json::"name"`      // NAME
+}
+
+type CancelFields struct {
+	OrderId int `json::orderID` // OrderId
 }
 
 func writeError(w http.ResponseWriter, message string, code int) {
