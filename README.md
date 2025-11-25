@@ -6,12 +6,12 @@ This project is a high-performance, polyglot system designed to serve as a mock 
 
 ## Technologies & Libraries
 
-| Component | Technology | Role |
+| Component | Technology | Role | Source |
 | :--- | :--- | :--- | :--- |
-| **Engine Core (C++)** | C++23, `std::unordered_map` | Business-critical low-latency order matching and multi-asset persistence. | 
-| **Server Interface (C++)** | `httplib` | Provides the minimal, high-speed HTTP interface for the Go API to communicate with the engine process. | 
-| **API Gateway (Go)** | Go (w/ `go-chi/chi`, `net/http`) | Routing, thread-safe `OrderID` generation, and proxying requests to the C++ engine. | 
-| **Frontend (In Progress)** | TypeScript, Next.js, shadcn/ui | Visualization of market depth and trade history. | 
+| **Engine Core (C++)** | C++23, `std::unordered_map` | Business-critical low-latency order matching and multi-asset persistence. | |
+| **Server Interface (C++)** | `httplib` | Provides the minimal, high-speed HTTP interface for the Go API to communicate with the engine process. | |
+| **API Gateway (Go)** | Go (w/ `go-chi/chi`, `net/http`) | Routing, thread-safe `OrderID` generation, and proxying requests to the C++ engine. | |
+| **Frontend (In Progress)** | TypeScript, Next.js, shadcn/ui | Visualization of market depth and trade history. | |
 
 -----
 
