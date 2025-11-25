@@ -31,21 +31,21 @@ The core engine models key market concepts and logic:
 
 ### 1\. C++ Engine Layer (The Core Logic)
 
-  * **Status: DONE**
+  * **Status: Complete**
   * **Function:** Holds the active Orderbook state in RAM and executes the matching algorithm.
   * **Output:** Generates trade executions and new orderbook liquidity states.
 
 ### 2\. C++ Server Layer (The Performance Gateway)
 
-  * **Status: Complete (Minimal HTTP Implemented)**
+  * **Status: Complete **
   * **Function:** Wraps the Engine via an `httplib` server to expose functionality on port 6060.
   * **Future:** Planning migration to gRPC for minimal-latency binary communication.
 
 ### 3\. Go Backend API (The External Interface)
 
-  * **Status: DONE**
+  * **Status: Complete**
   * **Function:** Provides external RESTful endpoints on port 8000 for the Frontend. It handles request routing, generates thread-safe `OrderID`s, and proxies requests to the C++ Server.
-  * **Why Go:** Excellent for high concurrency and robust traffic management (goroutines).
+  * **Go:** for high concurrency and traffic management (goroutines).
 
 ### 4\. Frontend UI (Visualization and Input)
 
