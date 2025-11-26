@@ -15,6 +15,7 @@
 #include <iterator>
 #include <numeric>
 #include <atomic>
+#include <mutex>
 
 using namespace std;
 
@@ -425,6 +426,7 @@ struct Counter{
     }
 };
 
+std::mutex gLock;
 std::unordered_map<string, Orderbook> MyMap;
 
 OrderType parse_ordertype(string type){
@@ -476,14 +478,15 @@ void server_trade(const httplib::Request& req, httplib::Response& res){
         Price price = parse_price(s_price);
         Quantity quantity = parse_quantity(s_quantity);
 
-    
+        {
+        std::lock_guard<std::mutex> lock(gLock);;
         Orderbook& book = MyMap[s_book];
-    
-        // GOOG.AddOrder(std::make_shared<Order>(OrderType::GoodTillCancel, Side::Buy, 100, 10, orderId));
         book.AddOrder(std::make_shared<Order>(type, side, price, quantity, id));
+        
+        cout << "\n " << book.Size();
+        }
         res.status = 200; // or httplib::StatusCode::OK_200
         res.set_content("{\"message\": \"Order placed successfully\"}", "application/json");
-        cout << "\n " << book.Size();
     }catch(const std::exception& e) {
         // Catch standard C++ errors (like bad numeric conversion)
         res.status = 500; // Internal Server Error is better for conversion errors
@@ -513,10 +516,13 @@ void server_cancel(const httplib::Request& req, httplib::Response& res) {
         }
 
         OrderId id = parse_id(s_orderid);
+        
+        std::lock_guard<std::mutex> lock(gLock);
         Orderbook& book = MyMap[s_book];
         size_t before = book.Size();
         book.CancelOrder(id);
         size_t after = book.Size();
+        
 
         if (after < before){
             cout << "\n " << s_orderid << " " << s_book;
@@ -603,6 +609,7 @@ void server_status(const httplib::Request& req, httplib::Response& res) {
 }
 
 int main() {
+    // we currently access "MyMap" in all functions, which we know may run concurrently. This can be a race condition (trade + cancel at the same time).
     httplib::Server svr;
 
     svr.Post("/trade", server_trade);
