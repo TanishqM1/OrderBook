@@ -215,83 +215,112 @@ class Orderbook{
           }
 
         // We also need a Match() function that runs when a match actually occurs. 
-        Trades MatchOrders(){
-            Trades trades;
-            // .reserve() in cpp modifies the capacity of an object (how much memory is allocated), to prevent unneeded alloation down the line.
-            trades.reserve(orders_.size());
+        // Replace your MatchOrders() function with this debug version:
 
-            while (true){
-                if (bids_.empty() || asks_.empty()){ break;}
-                
-                // this is `Structured Binding Declaration`. asks_.begin() returns an iterator to the first pair, but since we dereference it, it returns the 
-                // PRICE (askprice/bidprice, the key) and the OrderPointers (list of ALL orders at this price) and stores it into the variables as needed.
-                auto&[askPrice, asks] = *asks_.begin();
-                auto&[bidPrice, bids] = *bids_.begin();
-            
-                // if no matches can be done (bid too low / ask too high), we return.
-                if (bidPrice < askPrice){ break; }
+Trades MatchOrders(){
+    std::cout << "\n[DEBUG] MatchOrders called" << std::flush;
+    Trades trades;
+    trades.reserve(orders_.size());
 
-                while (!bids.empty() && !asks.empty()){
-                    auto& bid = bids.front();
-                    auto& ask = asks.front();
+    std::cout << "\n[DEBUG] Bids empty: " << bids_.empty() << ", Asks empty: " << asks_.empty() << std::flush;
 
-                    /*
-                    bid/ask are OrderPointers. given the pointer to an order, find out the minimum quantity we need to fill (i.e the lesser of the two possible quantities).
-                    so we get the quantity of the bid() order, and the ask() order.
-                    the "->" operatior below dereferences the pointer, so we can use GetRemainingQuantity() on the actual underlying object. It's logically as such:
-                    bid-> GetRemainingQuantity() === (*bid).GetRemainingQuantity().
-                    */
-
-                    Quantity quantity = std::min(bid-> GetRemainingQuantity(), ask-> GetRemainingQuantity());
-                    
-                    // call fill() on the orders.
-                    bid->Fill(quantity);
-                    ask->Fill(quantity);
-                    
-                    // after filling, if it is compeltely filled (not partially), we can REMOVE it from our orderbook.
-                    if (bid->IsFilled()){
-                        bids.pop_front();
-                        orders_.erase(bid->GetOrderId());
-                    }
-                    if (ask->IsFilled()){
-                        asks.pop_front();
-                        orders_.erase(ask->GetOrderId());
-                    }
-
-                    if (bids.empty()){ bids_.erase(bidPrice);}
-                    if (asks.empty()){ asks_.erase(askPrice);}
-
-                    // add to our log of the trade (requires two TradeInfo objects).
-                    trades.push_back(Trade{
-                        TradeInfo{ bid->GetOrderId(), bid->GetPrice(), quantity},
-                        TradeInfo{ ask->GetOrderId(), ask->GetPrice(), quantity}
-                    });
-
-                }
-            }
-            // we've taken care of cleaning up bid/ask references after an order fill in the case it was partially filled, it's no longer availible, and we've also logged the trade that has happend.
-            // But, we also need to update the bid and ask at the current price. This is important for FUTURE orders, but ALSO if the order was partially filled, as we need to re-run the engine to continue seeing
-            // if it can be filled at a NEW price.
-
-            // essentially, we need to re-set the best bid and ask price(s), after our current order has gone through.
-            if (!bids_.empty()){
-                auto& [_, bids] = *bids_.begin();
-                auto& order = bids.front();
-                // if the type is fill and kill, we ALWAYS want to remove it from the orderbook right away.
-                if (order-> GetOrderType() == OrderType::FillAndKill){
-                    CancelOrder(order->GetOrderId());
-                }
-            }
-
-            if (!asks_.empty()){
-                auto& [_, asks] = *asks_.begin();
-                auto& order = asks.front();
-                if (order-> GetOrderType() == OrderType::FillAndKill){
-                    CancelOrder(order-> GetOrderId());
-                }
-            }
-            return trades; // finally, we can return the trades we JUST accomplished.   
+    while (true){
+        if (bids_.empty() || asks_.empty()){ 
+            std::cout << "\n[DEBUG] One side empty, breaking" << std::flush;
+            break;
         }
+        
+        std::cout << "\n[DEBUG] Getting best bid and ask" << std::flush;
+        auto& [askPrice, asks] = *asks_.begin();
+        auto& [bidPrice, bids] = *bids_.begin();
+        
+        std::cout << "\n[DEBUG] BidPrice: " << bidPrice << ", AskPrice: " << askPrice << std::flush;
+    
+        if (bidPrice < askPrice){ 
+            std::cout << "\n[DEBUG] No match possible, breaking" << std::flush;
+            break; 
+        }
+
+        std::cout << "\n[DEBUG] Starting match loop" << std::flush;
+        while (!bids.empty() && !asks.empty()){
+            std::cout << "\n[DEBUG] Getting front orders" << std::flush;
+            auto& bid = bids.front();
+            auto& ask = asks.front();
+
+            std::cout << "\n[DEBUG] Bid ID: " << bid->GetOrderId() << ", Ask ID: " << ask->GetOrderId() << std::flush;
+
+            Quantity quantity = std::min(bid->GetRemainingQuantity(), ask->GetRemainingQuantity());
+            std::cout << "\n[DEBUG] Matching quantity: " << quantity << std::flush;
+            
+            bid->Fill(quantity);
+            ask->Fill(quantity);
+            
+            std::cout << "\n[DEBUG] Creating trade log" << std::flush;
+            trades.push_back(Trade{
+                TradeInfo{ bid->GetOrderId(), bid->GetPrice(), quantity},
+                TradeInfo{ ask->GetOrderId(), ask->GetPrice(), quantity}
+            });
+            
+            std::cout << "\n[DEBUG] Checking if orders filled" << std::flush;
+            if (bid->IsFilled()){
+                std::cout << "\n[DEBUG] Removing filled bid" << std::flush;
+                OrderId bidId = bid->GetOrderId();
+                bids.pop_front();
+                orders_.erase(bidId);
+            }
+            if (ask->IsFilled()){
+                std::cout << "\n[DEBUG] Removing filled ask" << std::flush;
+                OrderId askId = ask->GetOrderId();
+                asks.pop_front();
+                orders_.erase(askId);
+            }
+        }
+        
+        std::cout << "\n[DEBUG] Inner loop done, checking empty" << std::flush;
+        if (bids.empty()){ 
+            std::cout << "\n[DEBUG] Erasing bid price level" << std::flush;
+            bids_.erase(bidPrice);
+        }
+        if (asks.empty()){ 
+            std::cout << "\n[DEBUG] Erasing ask price level" << std::flush;
+            asks_.erase(askPrice);
+        }
+    }
+
+    std::cout << "\n[DEBUG] Main matching done, checking FillAndKill" << std::flush;
+
+    // Handle FillAndKill orders that didn't fully fill
+    if (!bids_.empty()){
+        std::cout << "\n[DEBUG] Checking bids for FillAndKill" << std::flush;
+        auto bidIter = bids_.begin();
+        auto& [_, bidsRef] = *bidIter;
+        if (!bidsRef.empty()) {
+            auto& order = bidsRef.front();
+            if (order->GetOrderType() == OrderType::FillAndKill && !order->IsFilled()){
+                std::cout << "\n[DEBUG] Canceling unfilled FillAndKill bid" << std::flush;
+                OrderId orderId = order->GetOrderId();
+                CancelOrder(orderId);
+            }
+        }
+    }
+
+    if (!asks_.empty()){
+        std::cout << "\n[DEBUG] Checking asks for FillAndKill" << std::flush;
+        auto askIter = asks_.begin();
+        auto& [_, asksRef] = *askIter;
+        if (!asksRef.empty()) {
+            auto& order = asksRef.front();
+            if (order->GetOrderType() == OrderType::FillAndKill && !order->IsFilled()){
+                std::cout << "\n[DEBUG] Canceling unfilled FillAndKill ask" << std::flush;
+                OrderId orderId = order->GetOrderId();
+                CancelOrder(orderId);
+            }
+        }
+    }
+    
+    std::cout << "\n[DEBUG] MatchOrders returning" << std::flush;
+    return trades;
+}
 
         // need to add, cancel, and modify order(s).
 
@@ -439,21 +468,23 @@ Side parse_side(string side){
     else{return Side::Sell;}
 }
 
-Price parse_price(string price){
-    int temp_int = stoi(price);
-    int32_t res = static_cast<int32_t>(temp_int);
+// Use stoull (string to unsigned long long) for OrderId (uint64_t)
+OrderId parse_id(string id){
+    // This supports values up to 18 quintillion (uint64_t max)
+    uint64_t res = std::stoull(id); 
     return res;
 }
 
+// Use stoul (string to unsigned long) for Quantity (uint32_t)
 Quantity parse_quantity(string quantity){
-    int temp_quantity = stoi(quantity);
-    uint32_t res = static_cast<uint32_t>(temp_quantity);
+    // This supports values up to 4.2 billion (uint32_t max)
+    uint32_t res = static_cast<uint32_t>(std::stoul(quantity));
     return res;
 }
-OrderId parse_id(string id){
-    int temp_id = stoi(id);
-    uint64_t res = static_cast<uint64_t>(temp_id);
-    return res;
+
+// Keep parse_price as stoi since Price (int32_t) is a signed 32-bit integer.
+Price parse_price(string price){
+    return std::stoi(price);
 }
 
 
