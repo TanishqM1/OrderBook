@@ -8,10 +8,8 @@ This project is a high-performance, polyglot system designed to serve as a mock 
 
 | Component | Technology | Role |  |
 | :--- | :--- | :--- | :--- |
-| **Engine Core (C++)** | C++23, `std::unordered_map` | Business-critical low-latency order matching and multi-asset persistence. | |
 | **Server Interface (C++)** | `httplib` | Provides the minimal, high-speed HTTP interface for the Go API to communicate with the engine process. | |
 | **API Gateway (Go)** | Go (w/ `go-chi/chi`, `net/http`) | Routing, thread-safe `OrderID` generation, and proxying requests to the C++ engine. | |
-| **Frontend (In Progress)** | TypeScript, Next.js, shadcn/ui | Visualization of market depth and trade history. | |
 
 -----
 
@@ -24,33 +22,6 @@ The core engine models key market concepts and logic:
   * **Priority Matching:** Orders are executed based on **Price–Time Priority** (best price first, then earliest submission time).
   * **Order Types:** Models **GTC** (Good-Till-Cancel) and **FAK** (Fill-And-Kill) orders.
   * **Real-World State:** Tracks important metrics like the total quantity at specific **Price Levels** and handles **Partially Filled Orders**.
-
------
-
-## Architecture & Roadmap
-
-### 1\. C++ Engine Layer (The Core Logic)
-
-  * **Status: Complete**
-  * **Function:** Holds the active Orderbook state in RAM and executes the matching algorithm.
-  * **Output:** Generates trade executions and new orderbook liquidity states.
-
-### 2\. C++ Server Layer (The Performance Gateway)
-
-  * **Status: Complete **
-  * **Function:** Wraps the Engine via an `httplib` server to expose functionality on port 6060.
-  * **Future:** Planning migration to gRPC for minimal-latency binary communication.
-
-### 3\. Go Backend API (The External Interface)
-
-  * **Status: Complete**
-  * **Function:** Provides external RESTful endpoints on port 8000 for the Frontend. It handles request routing, generates thread-safe `OrderID`s, and proxies requests to the C++ Server.
-  * **Go:** for high concurrency and traffic management (goroutines).
-
-### 4\. Frontend UI (Visualization and Input)
-
-  * **Status: In Progress**
-  * **Function:** Renders the order book depth, trade history, and state visually for the end-user.
 
 -----
 
